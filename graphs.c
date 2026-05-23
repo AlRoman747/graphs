@@ -84,6 +84,7 @@ void print_graph(Graph* graph) {
     }
 }
 
+
 void free_graph(Graph* graph) {
     for (int i = 0; i < graph->nodes; i++) {
         free(graph->matrix[i]);
