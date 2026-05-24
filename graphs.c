@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define inf 9999999
+#define inf 99999999
 
 
 typedef struct {
@@ -59,7 +59,7 @@ void add_node(Graph* graph, int node, int* neighbours, int neighbours_count,
     }
 }
 
-void merge_nodes(Graph* graph, int node_one, int node_two, int* edge) {
+void merge_nodes(Graph* graph, int node_one, int node_two, int* edge, int len_path) {
     if (node_one >= graph->nodes || node_two >= graph->nodes) {
         printf("Error: Node doesn't exist\n");
         return;
@@ -74,8 +74,8 @@ void merge_nodes(Graph* graph, int node_one, int node_two, int* edge) {
         }
         graph->edges = new_edges;
     }
-    graph->matrix[node_one][*edge] = 1;
-    graph->matrix[node_two][*edge] = 1;
+    graph->matrix[node_one][*edge] = len_path;
+    graph->matrix[node_two][*edge] = len_path;
     (*edge)++;
 }
 
@@ -103,31 +103,43 @@ int dijkstra(Graph* graph, int node1, int node2) {
     int distances[graph->nodes];
     int visited[graph->nodes];
 
-    for (int i=0; i < graph->nodes; i++) {
-        if (node1 == i) {distances[i] = 0; continue;}
-        if (graph->matrix[node1][i] != 0) { distances[i] = graph->matrix[node1][i];}
-        else {
-            distances[i] = inf;
-        }
+    for (int i = 0; i < graph->nodes; i++) {
+        distances[i] = inf;
         visited[i] = 0;
     }
+    distances[node1] = 0;
 
-    for (int i=0; i < graph->nodes; i++) {
-        int mini=inf;
-        int u=-1;
-        for (int j = 0; j < graph->nodes;j++) {
+    for (int i = 0; i < graph->nodes; i++) {
+        int mini = inf;
+        int u = -1;
+        for (int j = 0; j < graph->nodes; j++) {
             if (!visited[j] && distances[j] <= mini) {
                 mini = distances[j];
-                u = i;
+                u = j;
+            }
         }
-    }
-        if (u == -1) break;
+
+        if (u == -1 || distances[u] == inf) break;
         visited[u] = 1;
-        for (int j = 0; j < graph->nodes;j++) {
-            if (!visited[j] && graph->matrix[u][j] != 0
-                && (distances[u] + graph->matrix[u][j] < distances[j])) {
-                    distances[j] = distances[u] + graph->matrix[u][j];
+        for (int j = 0; j < graph->edges; j++) {
+            int weight = graph->matrix[u][j];
+            if (weight > 0) {
+                int v = -1;
+                for (int k = 0; k < graph->nodes; k++) {
+                    if (k != u && graph->matrix[k][j] > 0) {
+                        v = k;
+                        break;
+                    }
                 }
+                if (v != -1 && !visited[v]) {
+                    if (distances[u] != inf) {
+                        int new_dist = distances[u] + weight;
+                        if (new_dist < distances[v]) {
+                            distances[v] = new_dist;
+                        }
+                    }
+                }
+            }
         }
     }
     return distances[node2];
@@ -145,8 +157,8 @@ int main() {
     print_graph(graph);
     printf("\n");
 
-    int neighbours2[] = {1, 2};
-    int neighbours_paths2[] = {4, 12};
+    int neighbours2[] = {2};
+    int neighbours_paths2[] = {12};
     add_node(graph, 4, neighbours2, sizeof(neighbours2) / sizeof(neighbours2[0]),
              &current_edge, neighbours_paths2,
              sizeof(neighbours_paths2) / sizeof(neighbours_paths2[0]));
@@ -159,3 +171,4 @@ int main() {
     free_graph(graph);
     return 0;
 }
+
