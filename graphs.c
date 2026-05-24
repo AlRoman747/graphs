@@ -149,23 +149,42 @@ int main() {
     Graph* graph = create_graph(4, 3);
     int current_edge = 0;
 
-    int neighbours[] = {1, 2, 3};
-    int neighbours_paths[] = {5, 7, 9};
+    int neighbours[] = {1, 2};
+    int neighbours_paths[] = {3, 2};
     add_node(graph, 0, neighbours, sizeof(neighbours) / sizeof(neighbours[0]),
              &current_edge, neighbours_paths,
              sizeof(neighbours_paths) / sizeof(neighbours_paths[0]));
     print_graph(graph);
     printf("\n");
-
-    int neighbours2[] = {2};
-    int neighbours_paths2[] = {12};
+    merge_nodes(graph, 1, 2, &current_edge, 2);
+    print_graph(graph);
+    printf("\n");
+    int neighbours2[] = {1, 2, 3};
+    int neighbours_paths2[] = {1, 3, 2};
     add_node(graph, 4, neighbours2, sizeof(neighbours2) / sizeof(neighbours2[0]),
              &current_edge, neighbours_paths2,
              sizeof(neighbours_paths2) / sizeof(neighbours_paths2[0]));
     print_graph(graph);
     printf("\n");
+    int neighbours3[] = {1, 3};
+    int neighbours_paths3[] = {4, 1};
+    add_node(graph, 5, neighbours3, sizeof(neighbours3) / sizeof(neighbours3[0]),
+             &current_edge, neighbours_paths3,
+             sizeof(neighbours_paths3) / sizeof(neighbours_paths3[0]));
+    print_graph(graph);
+    printf("\n");
+    int neighbours4[] = {2, 3};
+    int neighbours_paths4[] = {5, 2};
+    add_node(graph, 6, neighbours4, sizeof(neighbours4) / sizeof(neighbours4[0]),
+             &current_edge, neighbours_paths4,
+             sizeof(neighbours_paths4) / sizeof(neighbours_paths4[0]));
+    print_graph(graph);
+    printf("\n");
+    merge_nodes(graph, 2, 3, &current_edge, 6);
+    print_graph(graph);
+    printf("\n");
 
-    int res = dijkstra(graph, 0, 4);
+    int res = dijkstra(graph, 0, 3);
     printf("%d\n", res);
 
     free_graph(graph);
