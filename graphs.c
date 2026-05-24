@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define inf 9999999
+
 
 typedef struct {
     int** matrix;
@@ -18,7 +20,11 @@ Graph* create_graph(int nodes, int edges) {
     return graph;
 }
 
-void add_node(Graph* graph, int node, int* neighbours, int neighbours_count, int* current_edge) {
+void add_node(Graph* graph, int node, int* neighbours, int neighbours_count,
+              int* current_edge, int* neighbours_paths, int neighbours_pathps_count) {
+    if (neighbours_count != neighbours_pathps_count) {
+        printf("ERROR with add to node"); return;
+        }
     if (node >= graph->nodes) {
         int new_nodes = node + 1;
         graph->matrix = realloc(graph->matrix, new_nodes * sizeof(int*));
@@ -39,7 +45,7 @@ void add_node(Graph* graph, int node, int* neighbours, int neighbours_count, int
             }
             graph->edges = new_edges;
         }
-        graph->matrix[node][edge] = 1;
+        graph->matrix[node][edge] = neighbours_paths[i];
         if (neighbours[i] >= graph->nodes) {
             int new_nodes = neighbours[i] + 1;
             graph->matrix = realloc(graph->matrix, new_nodes * sizeof(int*));
@@ -48,7 +54,7 @@ void add_node(Graph* graph, int node, int* neighbours, int neighbours_count, int
             }
             graph->nodes = new_nodes;
         }
-        graph->matrix[neighbours[i]][edge] = 1;
+        graph->matrix[neighbours[i]][edge] = neighbours_paths[i];
         (*current_edge)++;
     }
 }
@@ -93,22 +99,62 @@ void free_graph(Graph* graph) {
     free(graph);
 }
 
+int dijkstra(Graph* graph, int node1, int node2) {
+    int distances[graph->nodes];
+    int visited[graph->nodes];
+
+    for (int i=0; i < graph->nodes; i++) {
+        if (node1 == i) {distances[i] = 0; continue;}
+        if (graph->matrix[node1][i] != 0) { distances[i] = graph->matrix[node1][i];}
+        else {
+            distances[i] = inf;
+        }
+        visited[i] = 0;
+    }
+
+    for (int i=0; i < graph->nodes; i++) {
+        int mini=inf;
+        int u=-1;
+        for (int j = 0; j < graph->nodes;j++) {
+            if (!visited[j] && distances[j] <= mini) {
+                mini = distances[j];
+                u = i;
+        }
+    }
+        if (u == -1) break;
+        visited[u] = 1;
+        for (int j = 0; j < graph->nodes;j++) {
+            if (!visited[j] && graph->matrix[u][j] != 0
+                && (distances[u] + graph->matrix[u][j] < distances[j])) {
+                    distances[j] = distances[u] + graph->matrix[u][j];
+                }
+        }
+    }
+    return distances[node2];
+}
+
 int main() {
     Graph* graph = create_graph(4, 3);
     int current_edge = 0;
 
     int neighbours[] = {1, 2, 3};
-    add_node(graph, 0, neighbours, sizeof(neighbours) / sizeof(neighbours[0]), &current_edge);
+    int neighbours_paths[] = {5, 7, 9};
+    add_node(graph, 0, neighbours, sizeof(neighbours) / sizeof(neighbours[0]),
+             &current_edge, neighbours_paths,
+             sizeof(neighbours_paths) / sizeof(neighbours_paths[0]));
     print_graph(graph);
     printf("\n");
 
-    merge_nodes(graph, 1, 3, &current_edge);
+    int neighbours2[] = {1, 2};
+    int neighbours_paths2[] = {4, 12};
+    add_node(graph, 4, neighbours2, sizeof(neighbours2) / sizeof(neighbours2[0]),
+             &current_edge, neighbours_paths2,
+             sizeof(neighbours_paths2) / sizeof(neighbours_paths2[0]));
     print_graph(graph);
     printf("\n");
 
-    int neighbours2[] = {3};
-    add_node(graph, 4, neighbours2, sizeof(neighbours2) / sizeof(neighbours2[0]), &current_edge);
-    print_graph(graph);
+    int res = dijkstra(graph, 0, 4);
+    printf("%d\n", res);
 
     free_graph(graph);
     return 0;
